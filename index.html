@@ -1,0 +1,86 @@
+<?php
+include('server.php');
+if (!isset($_SESSION['username'])) {
+	$_SESSION['msg'] = "You must log in first";
+	header('location: login.php');
+}
+
+if (isset($_GET['logout'])) {
+	session_destroy();
+	unset($_SESSION['username']);
+	header("location: login.php");
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Home</title>
+	<link rel="stylesheet" type="text/css" href="/indexstyles.css">
+</head>
+
+<body>
+	<div class="container">
+
+		<div class="header">
+			<h2>MyDiary</h2>
+			<p> <a href="index.php?logout='1'" style="color: red;">logout</a> </p>
+		</div>
+		<div class="content">
+			<!-- notification message -->
+			<?php if (isset($_SESSION['success'])) : ?>
+				<div class="error success">
+					<h3>
+						<?php
+						echo $_SESSION['success'];
+						unset($_SESSION['success']);
+						?>
+					</h3>
+				</div>
+			<?php endif ?>
+	
+			<?php if (isset($_SESSION['username'])) : ?>
+				<p>Welcome, <strong><?php echo $_SESSION['username']; ?></strong></p>
+				
+			<?php endif ?>
+		</div>
+		
+		<a href="entry.html">Create new Entry</a>
+		
+		<?php include('errors.php'); ?>
+		<div class="display-entry">
+			<?php
+			$username = $_SESSION['username'];
+			$results = mysqli_query($db, "SELECT date, entry FROM entries WHERE username = '$username' ORDER BY date DESC");
+			if (mysqli_num_rows($results) >= 1) {
+				while ($row = $results->fetch_assoc()) {
+					$retrievedDate = $row["date"];
+					$retrievedEntry = $row["entry"];
+					echo "<div class='entry_blocks'>";
+					echo $retrievedDate . "<br>";
+					echo $retrievedEntry . "<br>";
+					echo "</div>";
+					echo "<form method='post' action='index.php' class='input_form'>
+							<button onclick='edit()' type='submit' id='edit_btn' class='btn'>Edit</button>
+							<input type='text' id='edit_input' style='display:none;'>
+						</form>";
+					echo "<br>";
+				}
+			}
+			?>
+		</div>
+	</div>
+	<script >
+		function edit(){
+			var x = document.getElementById("edit_input");
+			if (x.style.display === "none") {
+				x.style.display = "block";
+			} 
+			else {
+				x.style.display = "none";
+			}
+		}
+	</script>
+</body>
+
+</html>
